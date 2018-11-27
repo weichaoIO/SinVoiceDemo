@@ -1,9 +1,13 @@
 package com.example.sinvoicedemo;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
@@ -20,6 +24,10 @@ import com.libra.sinvoice.SinVoiceRecognition;
  */
 public class MainActivity extends Activity implements SinVoiceRecognition.Listener, SinVoicePlayer.Listener {
     private final static String TAG = "MainActivity";
+
+    private static final String[] PERMISSIONS = {Manifest.permission.RECORD_AUDIO};
+
+    private static final int REQUEST_CODE_AUDIO = 1;
 
     // 最大数字
     private final static int MAX_NUMBER = 5;
@@ -73,6 +81,11 @@ public class MainActivity extends Activity implements SinVoiceRecognition.Listen
         findViewById(R.id.start_reg).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View arg0) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(PERMISSIONS,REQUEST_CODE_AUDIO);
+                    return;
+                }
+
                 mRecognition.start();
             }
         });
@@ -83,6 +96,20 @@ public class MainActivity extends Activity implements SinVoiceRecognition.Listen
                 mRecognition.stop();
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch(requestCode){
+            case REQUEST_CODE_AUDIO:
+                if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    mRecognition.start();
+                }
+                break;
+            default:break;
+        }
     }
 
     // 获取长度为count且最大值为MAX_NUMBER的随机数
